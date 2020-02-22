@@ -26,12 +26,22 @@ def talk_to_me(bot, update):
     update.message.reply_text(user_text)
 
 def call_planet(bot, update):
-    date = update.message.text.split()
-    date = date[1]
-    user_text = ephem.Planet(date)
+    user_info = update.message.text.split()
+    planet = user_info[1]
+    if len(user_info) == 2:
+        date = ephem.now()
+    else:
+        date = user_info[2]
+    user_text = getattr(ephem, planet)(date)
     constellation = ephem.constellation(user_text)
     print(constellation)
     update.message.reply_text(constellation)
+
+def all_planets(bot, update):
+    planets = ephem._libastro.builtin_planets()
+    for planet in planets:
+        print(planet)
+        update.message.reply_text(planet)
     
 def main():
     mybot = Updater(API_KEY, request_kwargs=PROXY)
@@ -40,6 +50,7 @@ def main():
     dp.add_handler(CommandHandler("start", greet_user))
     dp.add_handler(MessageHandler(Filters.text, talk_to_me))
     dp.add_handler(CommandHandler("planet", call_planet))
+    dp.add_handler(CommandHandler("planets", all_planets))
 
     mybot.start_polling()
     mybot.idle()
